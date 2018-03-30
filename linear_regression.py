@@ -1,31 +1,28 @@
-from __future__ import print_function, division
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim import lr_scheduler
 from torch.autograd import Variable
 import numpy as np
-
 
 class LinearRegression():
 
     def __init__(self):
-        pass
+
+        self.weights = None
+        self.bias = None
 
     def fit(self, X, y):
 
+        num_epochs = 10000
         N,K = X.shape
-
         inputs = Variable(X)
         actual = Variable(y)
 
         criterion = nn.MSELoss()
-
         linear = torch.nn.Linear(K, 1, bias=True)
         optimizer = optim.Adam(linear.parameters())
 
-        for epoch in range(10000):
+        for epoch in range(num_epochs):
 
             outputs = linear(inputs)
             loss = criterion(outputs, actual)
@@ -36,9 +33,13 @@ class LinearRegression():
 
             print(linear.weight)
 
+        self.weight = linear.weight.data.numpy()[0]
+        self.bias = linear.bias.data.numpy()[0]
+
 
     def predict(self, X):
-        pass
+
+        return self.bias + X.dot(self.weight)
 
 
 
