@@ -10,7 +10,6 @@ import numpy as np
 
 class LinearRegression():
 
-
     def __init__(self):
         pass
 
@@ -43,10 +42,7 @@ class LinearRegression():
 
 
 
-
-
 if __name__ == "__main__":
-
 
     N = 500
     K = 5
