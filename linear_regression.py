@@ -31,7 +31,7 @@ class LinearRegression():
             loss.backward()
             optimizer.step()
 
-            print(linear.weight)
+            # print(linear.weight)
 
         self.weight = linear.weight.data.numpy()[0]
         self.bias = linear.bias.data.numpy()[0]
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     X = np.random.multivariate_normal(mean = mean, cov = np.identity(K), size = (N))
     B = np.random.uniform( size = K)
-    y = X.dot(B)# + np.random.normal(0,1, size = N)
+    y = X.dot(B).reshape(N,1)# + np.random.normal(0,1, size = N)
 
     X_torch = torch.from_numpy(X).float()
     y_torch = torch.from_numpy(y).float()
