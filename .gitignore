@@ -1,3 +1,5 @@
 .DS_Store
 hymenoptera_data/
 .env/
+names/
+__pycache__/
