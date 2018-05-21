@@ -10,59 +10,51 @@ class Exponential():
         self.weights = None
 
 
-    def fit(self, X, T, y):
+    def fit(self, X, T, y, verbose = False):
 
-        num_epochs = 20000
+        num_epochs = 50000
         N,K = X.shape
         inputs = Variable(X)
         duration = Variable(T)
         actual = Variable(y)
 
-        Betas = Variable(torch.rand(K,1), requires_grad = True)
-        alpha = Variable(torch.rand(1), requires_grad = True)
-        optimizer = optim.Adam([Betas, alpha])
+        # Betas = Variable(torch.rand(K,1), requires_grad = True)
+        alpha = torch.rand(1, requires_grad = True)
+        # Variable(torch.rand(1), requires_grad = True)
+        # optimizer = optim.Adam([Betas, alpha])
+        optimizer = optim.Adam([alpha])
 
         _betas = []
 
         for epoch in range(num_epochs):
-            log_survival = duration *  -1 * torch.exp( alpha + torch.mm(inputs, Betas) )
-            log_pdf = torch.log(alpha) + torch.mm(inputs, Betas) * actual
-            NLL = -1 * torch.sum(log_survival + log_pdf)
+            optimizer.zero_grad()
+
+            loglik =  actual * torch.log(alpha) -  alpha * duration
+            NLL = -1 * torch.sum(loglik)
             optimizer.zero_grad()
             NLL.backward(retain_graph = True)
             optimizer.step()
-            #
-            print(NLL.data[0], Betas.data[0][0], alpha.data[0])
 
-            _betas.append(Betas.data[0][0])
+            if verbose:
+                if epoch % 1000 == 0:
+                    print(alpha)
+
+        self.alpha = alpha.item()
 
 
-        import ipdb; ipdb.set_trace()
 
+def test_exponential(lambda_0 = 10, B1 = 1, max_T = 50):
 
-def simulate(lambda_0, Betas, max_T):
+    size = 10000
 
-    pass
-
-def test(lambda_0 = 10, B1 = 1, max_T = 50):
-
-    X = []
-    for i in range(10000):
-        X.append([1])
-        X.append([0])
-
-    T = [max_T] * len(X)
-    C = [0] * len(X)
-
-    for i, x in enumerate(X):
-        lambda_ = lambda_0 * np.exp(np.matmul(x, [B1]))
-        t = np.random.exponential(1/lambda_)
-        if t < max_T:
-            T[i] = t
-            C[i] = 1
+    T = np.random.exponential(1/lambda_0, size = size)
+    event = lambda x: 1 if x <= max_T else 0
+    C = [event(t) for t in T]
+    T = [min(t, max_T) for t in T]
+    X = [0] * size
 
     N = len(X)
-    X = np.array(X)
+    X = np.array(X).reshape(N, 1)
     y = np.array(C).reshape(N, 1)
     T = np.array(T).reshape(N, 1)
 
@@ -71,8 +63,10 @@ def test(lambda_0 = 10, B1 = 1, max_T = 50):
     T_torch = torch.from_numpy(T).float()
 
     Exp = Exponential()
-    Exp.fit(X_torch, T_torch, y_torch)
+    Exp.fit(X_torch, T_torch, y_torch, verbose = True)
 
+    alpha = Exp.alpha
+    assert abs(alpha - lambda_0) < 0.05
 
 if __name__ == "__main__":
 
@@ -95,4 +89,4 @@ if __name__ == "__main__":
     # Exp = Exponential()
     # Exp.fit(X_torch, T_torch, y_torch)
 
-    test()
+    test_exponential()
